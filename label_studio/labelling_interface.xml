@@ -1,0 +1,7 @@
+<View>
+  <KeyPointLabels name="kp-1" toName="img-1">
+    
+    
+  <Label value="L1" background="#FFA39E"/><Label value="L2" background="#D4380D"/><Label value="L3" background="#FFC069"/><Label value="D1" background="#AD8B00"/><Label value="D2" background="#D3F261"/><Label value="D3" background="#389E0D"/><Label value="C1" background="#5CDBD3"/><Label value="C2" background="#096DD9"/><Label value="R1" background="#ADC6FF"/><Label value="R2" background="#9254DE"/><Label value="R3" background="#F759AB"/><Label value="R4" background="#FFA39E"/></KeyPointLabels>
+  <Image name="img-1" value="$img" zoom="true" rotateControl="true"/>
+</View>

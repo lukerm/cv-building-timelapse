@@ -5,7 +5,7 @@ from math import atan2, cos, sin, pi
 from PIL import Image
 
 
-LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/project-2-at-2024-10-09-09-02-e4d48c49.json')
+LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/labels/project-2-at-2024-10-09-09-02-e4d48c49.json')
 
 IMG_LOAD_DIR = os.path.expanduser('~/Pictures/London/.../balcony/construction')
 IMG_SAVE_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translated_rotated/v3')

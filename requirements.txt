@@ -1,2 +1,5 @@
 numpy~=2.1.2
+pandas~=2.2.3
 Pillow~=10.4
+torch~=2.5.1+cpu
+torchvision~=0.20.1+cpu

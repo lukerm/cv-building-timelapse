@@ -157,3 +157,23 @@ if __name__ == "__main__":
     for loc in ['train', 'val', 'test']:
         for label in TARGET_LABELS:
             dfs[loc][label].to_csv(os.path.join(SAVE_ROOT_DIR, loc, f'image_paths_{label}.csv'), index=False)
+
+
+if __name__ == "__postfix__":
+    # This is needed as some of the input crops failed to save correctly during the __main__ logic
+
+    EXPERIMENTS_DIR = os.path.expanduser('~/cv-building-timelapse/data/experiments')
+    CSV_FILE = os.path.join(EXPERIMENTS_DIR, 'test/image_paths_R1.csv')
+
+    df_orig = pd.read_csv(CSV_FILE)
+    new_rows = []
+
+    for i, row in df_orig.iterrows():
+        if os.path.exists(row['input_crop_loc']) and os.path.exists(row['target_crop_loc']):
+            new_rows.append(row)
+        else:
+            print(f"Dropping missing image(s): {row['input_crop_loc']} or {row['target_crop_loc']}")
+
+    df_fix = pd.DataFrame(new_rows)
+    new_filename = os.path.splitext(CSV_FILE)[0] + '_clean.csv'
+    df_fix.to_csv(new_filename, index=False)

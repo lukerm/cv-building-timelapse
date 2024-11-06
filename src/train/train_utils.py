@@ -58,6 +58,7 @@ class UNet(nn.Module):
 
         # Final output layer
         self.out_conv = nn.Conv2d(32, out_channels, kernel_size=1)
+        self.out_sigmoid = nn.Sigmoid()
 
     def double_conv(self, in_channels, out_channels):
         # Double convolutional layers followed by ReLU activation
@@ -90,6 +91,7 @@ class UNet(nn.Module):
 
         # Output layer
         out = self.out_conv(dec1)
+        out = self.out_sigmoid(out)
         return out
 
 
@@ -99,10 +101,7 @@ def get_image_transforms() -> Tuple[transforms_v2.Transform, transforms_v2.Trans
         transforms_v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
     target_transform = transforms_v2.Compose([
-        # Note: originally had scaling=True to convert max of 255 to 1. But decided against this so exaggerate the
-        #       effect of the peak in the loss function (which gets divided by at least 512*512 ~= 262k in the average)
-        #       hopefully discouraging a zero solution!
-        transforms_v2.ToDtype(torch.float32) # , scale=True),  # scaling takes it into [0, 1] range
+        transforms_v2.ToDtype(torch.float32, scale=True),  # scaling takes it into [0, 1] range
     ])
 
     return input_transform, target_transform

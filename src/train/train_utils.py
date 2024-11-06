@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torchvision.transforms.v2 as transforms_v2
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 from torchvision.io import read_image
 
 

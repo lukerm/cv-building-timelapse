@@ -12,7 +12,8 @@ from ..utils import extract_date_from_filename, hash_date
 LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/labels/project-2-at-2024-10-11-16-11-19bfb516.json')
 
 IMG_LOAD_DIR = os.path.expanduser('~/mydata/media/')
-SAVE_ROOT_DIR = os.path.expanduser('~/cv-building-timelapse/data/experiments')
+CROP_SIZE = (256, 256)
+SAVE_ROOT_DIR = os.path.expanduser(f'~/cv-building-timelapse/data/experiments/{CROP_SIZE[0]}')
 os.makedirs(SAVE_ROOT_DIR, exist_ok=True)
 
 TEST_SET_DIGITS = ['0', '1']
@@ -21,8 +22,7 @@ TRAIN_SET_DIGITS = ['4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
 
 TARGET_LABELS = ['L1', 'L2', 'L3', 'R1', 'R2', 'R3', 'R4', 'D1', 'D2', 'D3', 'C1', 'C2',]
 
-CROP_SIZE = (512, 512)
-N_TRAIN_CROPS = 5
+N_TRAIN_CROPS = 5  # variable valid only for 512 mode
 SIGMA = 2.
 
 
@@ -62,7 +62,11 @@ if __name__ == "__main__":
     for loc in ['train', 'val', 'test']:
         for loc2 in ['input', 'target']:
             os.makedirs(os.path.join(SAVE_ROOT_DIR, loc, loc2), exist_ok=True)
-            if loc2 == 'target':
+            if CROP_SIZE[0] == 512:
+                if loc2 == 'target':
+                    for label in TARGET_LABELS:
+                        os.makedirs(os.path.join(SAVE_ROOT_DIR, loc, loc2, label), exist_ok=True)
+            elif CROP_SIZE[0] == 256:
                 for label in TARGET_LABELS:
                     os.makedirs(os.path.join(SAVE_ROOT_DIR, loc, loc2, label), exist_ok=True)
 
@@ -73,9 +77,13 @@ if __name__ == "__main__":
     dates = [extract_date_from_filename(label['data']['img']) for label in labels]
     hashes = [hash_date(d) for d in dates]
 
-    train_transforms = transforms_v2.Compose([
+    train_transforms_512 = transforms_v2.Compose([
         # left padding only as these are labels close to that edge which we don't want to discard too often
         transforms_v2.RandomCrop(size=CROP_SIZE, padding=(200, 0, 0, 0)),
+        transforms_v2.RandomHorizontalFlip(p=0.5),
+    ])
+    train_transforms_256 = transforms_v2.Compose([
+        transforms_v2.FiveCrop(size=CROP_SIZE),
         transforms_v2.RandomHorizontalFlip(p=0.5),
     ])
     val_transforms = transforms_v2.Compose([
@@ -105,54 +113,107 @@ if __name__ == "__main__":
                     sigma=SIGMA,
                 )
 
-            # Take random (train) / controlled (val/test) crops of the original image, and the transformed Gaussian output
-            # Note: we use md5-hash shuffling (last digit) to determine the train/val/test folds
-            # Note: for val/test, we take two crops (bottom left and bottom right) as these are the most interesting regions
-            if h[-1] in TRAIN_SET_DIGITS:
-                fold = 'train'
-                for c in range(N_TRAIN_CROPS):
-                    input_crop, target_crop = train_transforms(img, outputs)
-                    crop_fname = f'{fname_split_ext[0]}.{c}{fname_split_ext[1]}'
+            if CROP_SIZE[0] == 512:
 
-                    input_save_path = os.path.join(SAVE_ROOT_DIR, 'train', 'input', crop_fname)
-                    input_crop.save(input_save_path)
-                    for kp, target_img in target_crop.items():
-                        target_save_path = os.path.join(SAVE_ROOT_DIR, 'train', 'target', kp, crop_fname)
-                        target_img.save(target_save_path)
+                # Take random (train) / controlled (val/test) crops of the original image, and the transformed Gaussian output
+                # Note: we use md5-hash shuffling (last digit) to determine the train/val/test folds
+                # Note: for val/test, we take two crops (bottom left and bottom right) as these are the most interesting regions
+                if h[-1] in TRAIN_SET_DIGITS:
+                    fold = 'train'
+
+                    for c in range(N_TRAIN_CROPS):
+                        input_crop, target_crop = train_transforms_512(img, outputs)
+                        crop_fname = f'{fname_split_ext[0]}.{c}{fname_split_ext[1]}'
+
+                        input_save_path = os.path.join(SAVE_ROOT_DIR, 'train', 'input', crop_fname)
+                        input_crop.save(input_save_path)
+                        for kp, target_img in target_crop.items():
+                            target_save_path = os.path.join(SAVE_ROOT_DIR, 'train', 'target', kp, crop_fname)
+                            target_img.save(target_save_path)
+
+                            # record the crop locations in the relevant dataframe
+                            dfs['train'][kp] = pd.concat([
+                                dfs['train'][kp],
+                                pd.DataFrame({
+                                    'input_crop_loc': [input_save_path],
+                                    'target_crop_loc': [target_save_path]})
+                            ])
+
+                elif h[-1] in VAL_SET_DIGITS + TEST_SET_DIGITS:
+                    fold = 'val' if h[-1] in VAL_SET_DIGITS else 'test'
+
+                    input_crops, target_crops = val_transforms(img, outputs)
+                    _, _, bl_crop, br_crop, _ = input_crops
+                    bl_input_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'input', f'{fname_split_ext[0]}.0{fname_split_ext[1]}')
+                    br_input_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'input', f'{fname_split_ext[0]}.1{fname_split_ext[1]}')
+                    bl_crop.save(bl_input_save_path)
+                    br_crop.save(br_input_save_path)
+                    for kp, target_imgs in target_crops.items():
+                        _, _, bl_target_crop, br_target_crop, _ = target_imgs
+                        bl_target_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'target', kp, f'{fname_split_ext[0]}.0{fname_split_ext[1]}')
+                        br_target_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'target', kp, f'{fname_split_ext[0]}.1{fname_split_ext[1]}')
+                        bl_target_crop.save(bl_target_save_path)
+                        br_target_crop.save(br_target_save_path)
 
                         # record the crop locations in the relevant dataframe
-                        dfs['train'][kp] = pd.concat([
-                            dfs['train'][kp],
+                        dfs[fold][kp] = pd.concat([
+                            dfs[fold][kp],
+                            pd.DataFrame({
+                                'input_crop_loc': [bl_input_save_path, br_input_save_path],
+                                'target_crop_loc': [bl_target_save_path, br_target_save_path]})
+                        ])
+
+                else:
+                    raise ValueError(f'Unexpected final hash digit: {h[-1]}')
+
+            elif CROP_SIZE[0] == 256:
+                if h[-1] in TRAIN_SET_DIGITS:
+                    fold = 'train'
+                elif h[-1] in VAL_SET_DIGITS:
+                    fold = 'val'
+                elif h[-1] in TEST_SET_DIGITS:
+                    fold = 'test'
+                else:
+                    raise ValueError(f'Unexpected final hash digit: {h[-1]}')
+
+                # Take the 512x512 five-crop, keeping only bottom-left and bottom-right corners
+                input_crops, target_crops = transforms_v2.FiveCrop(size=(512, 512))(img, outputs)
+                input_crops_bl = input_crops[2]
+                input_crops_br = input_crops[3]
+                target_crops_bl = {kp: crops[2] for kp, crops in target_crops.items()}
+                target_crops_br = {kp: crops[3] for kp, crops in target_crops.items()}
+
+                for kp in TARGET_LABELS:
+                    if kp not in target_crops:
+                        continue
+                    # Exploit the fact that D/L labels always appear in the bottom-left corner of the original image
+                    # (C/R appear in bottom right)
+                    if kp.startswith('L') or kp.startswith('D'):
+                        my_input_crops = input_crops_bl
+                        my_target_crops = target_crops_bl.copy()
+                    elif kp.startswith('C') or kp.startswith('R'):
+                        my_input_crops = input_crops_br
+                        my_target_crops = target_crops_br.copy()
+
+                    my_input_crops, my_target_crops = train_transforms_256(my_input_crops, my_target_crops) if fold == 'train' else \
+                                                val_transforms(my_input_crops, my_target_crops)
+                    for c in range(5):
+                        crop_fname = f'{fname_split_ext[0]}.{c}{fname_split_ext[1]}'
+                        input_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'input', kp, crop_fname)
+                        my_input_crops[c].save(input_save_path)
+                        target_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'target', kp, crop_fname)
+                        my_target_crops[kp][c].save(target_save_path)
+
+                        # record the crop locations in the relevant dataframe
+                        dfs[fold][kp] = pd.concat([
+                            dfs[fold][kp],
                             pd.DataFrame({
                                 'input_crop_loc': [input_save_path],
                                 'target_crop_loc': [target_save_path]})
                         ])
 
-            elif h[-1] in VAL_SET_DIGITS + TEST_SET_DIGITS:
-                fold = 'val' if h[-1] in VAL_SET_DIGITS else 'test'
-                input_crops, target_crops = val_transforms(img, outputs)
-                _, _, bl_crop, br_crop, _ = input_crops
-                bl_input_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'input', f'{fname_split_ext[0]}.0{fname_split_ext[1]}')
-                br_input_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'input', f'{fname_split_ext[0]}.1{fname_split_ext[1]}')
-                bl_crop.save(bl_input_save_path)
-                br_crop.save(br_input_save_path)
-                for kp, target_imgs in target_crops.items():
-                    _, _, bl_target_crop, br_target_crop, _ = target_imgs
-                    bl_target_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'target', kp, f'{fname_split_ext[0]}.0{fname_split_ext[1]}')
-                    br_target_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'target', kp, f'{fname_split_ext[0]}.1{fname_split_ext[1]}')
-                    bl_target_crop.save(bl_target_save_path)
-                    br_target_crop.save(br_target_save_path)
-
-                    # record the crop locations in the relevant dataframe
-                    dfs[fold][kp] = pd.concat([
-                        dfs[fold][kp],
-                        pd.DataFrame({
-                            'input_crop_loc': [bl_input_save_path, br_input_save_path],
-                            'target_crop_loc': [bl_target_save_path, br_target_save_path]})
-                    ])
-
             else:
-                raise ValueError(f'Unexpected final hash digit: {h[-1]}')
+                raise ValueError(f"Don't know how to handle CROP_SIZE: {CROP_SIZE}")
 
     for loc in ['train', 'val', 'test']:
         for label in TARGET_LABELS:

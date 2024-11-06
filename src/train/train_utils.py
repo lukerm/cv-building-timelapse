@@ -44,14 +44,15 @@ class UNet(nn.Module):
         self.enc1 = self.double_conv(in_channels, 64)
         self.enc2 = self.double_conv(64, 128)
         self.enc3 = self.double_conv(128, 256)
-        self.enc4 = self.double_conv(256, 512)
+        # self.enc4 = self.double_conv(256, 512)
 
         # Bottleneck
-        self.bottleneck = self.double_conv(512, 512)
+        # self.bottleneck = self.double_conv(512, 512)
+        self.bottleneck = self.double_conv(256, 256)
 
         # Decoder: expansive path
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.dec4 = self.double_conv(1024, 256)
+        # self.dec4 = self.double_conv(1024, 256)
         self.dec3 = self.double_conv(512, 128)
         self.dec2 = self.double_conv(256, 64)
         self.dec1 = self.double_conv(128, 32)
@@ -76,15 +77,15 @@ class UNet(nn.Module):
         enc1 = self.enc1(x)
         enc2 = self.enc2(nn.functional.max_pool2d(enc1, 2))
         enc3 = self.enc3(nn.functional.max_pool2d(enc2, 2))
-        enc4 = self.enc4(nn.functional.max_pool2d(enc3, 2))
+        # enc4 = self.enc4(nn.functional.max_pool2d(enc3, 2))
 
         # Bottleneck
-        bottleneck = self.bottleneck(nn.functional.max_pool2d(enc4, 2))
+        bottleneck = self.bottleneck(nn.functional.max_pool2d(enc3, 2))
 
         # Expansive path
-        up4 = self.upsample(bottleneck)
-        dec4 = self.dec4(torch.cat([up4, enc4], dim=1))
-        up3 = self.upsample(dec4)
+        # up4 = self.upsample(bottleneck)
+        # dec4 = self.dec4(torch.cat([up4, enc4], dim=1))
+        up3 = self.upsample(bottleneck)  #dec4)
         dec3 = self.dec3(torch.cat([up3, enc3], dim=1))
         up2 = self.upsample(dec3)
         dec2 = self.dec2(torch.cat([up2, enc2], dim=1))

@@ -59,6 +59,7 @@ if __name__ == "__main__":
 
     for e in range(N_EPOCHS):
         epoch_line = f'---------EPOCH {e}---------'
+        print(epoch_line)
         with open(os.path.join(SAVE_PATH, 'losses.txt'), 'a') as f:
             f.write(epoch_line + '\n')
 
@@ -132,6 +133,7 @@ if __name__ == "__main__":
                 train_loss_history.append(last_loss)
                 t = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 train_loss_line = f'({t}):  batch {str(b+1).zfill(3)} loss: {last_loss:.6f}'
+                print(train_loss_line)
                 with open(os.path.join(SAVE_PATH, 'losses.txt'), 'a') as f:
                     f.write(train_loss_line + '\n')
                 running_loss = 0.

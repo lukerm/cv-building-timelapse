@@ -51,19 +51,18 @@ if __name__ == "__main__":
     )
     val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
+    train_loss_history = []
+    val_loss_history = []
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_val_loss = np.inf
+    last_val_improvement = 0
+
     for e in range(N_EPOCHS):
         epoch_line = f'---------EPOCH {e}---------'
         with open(os.path.join(SAVE_PATH, 'losses.txt'), 'a') as f:
             f.write(epoch_line + '\n')
 
         running_loss = 0.0
-        train_loss_history = []
-        val_loss_history = []
-
-        best_model_wts = copy.deepcopy(model.state_dict())
-        best_val_loss = np.inf
-        last_val_improvement = 0
-
         for b, (image, target) in enumerate(train_dataloader):
             if (e == b == 0) or (b == len(train_dataloader) - 1):
                 model.eval()

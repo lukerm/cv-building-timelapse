@@ -28,7 +28,6 @@ if __name__ == "__main__":
         model.cuda()
 
     bce_loss =  torch.nn.BCELoss(reduction='mean')
-    # mse_loss = torch.nn.MSELoss(reduction='mean')
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
 

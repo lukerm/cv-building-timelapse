@@ -24,6 +24,9 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = UNet(in_channels=3, out_channels=1).to(device=device)
+    if torch.cuda.is_available():
+        model.cuda()
+
     bce_loss =  torch.nn.BCELoss(reduction='mean')
     # mse_loss = torch.nn.MSELoss(reduction='mean')
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
@@ -65,6 +68,7 @@ if __name__ == "__main__":
 
         running_loss = 0.0
         for b, (image, target) in enumerate(train_dataloader):
+            image, target = image.to(device), target.to(device)
             if (e == b == 0) or (b == len(train_dataloader) - 1):
                 model.eval()
                 since_val_start = time.time()
@@ -73,6 +77,7 @@ if __name__ == "__main__":
 
                 with torch.no_grad():
                     for vi, (val_image, val_target) in enumerate(val_dataloader):
+                        val_image, val_target = val_image.to(device), val_target.to(device)
                         val_prediction = model(val_image)
                         loss = bce_loss(val_target, val_prediction)
                         val_loss += loss.item() * len(val_image)

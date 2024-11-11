@@ -1,6 +1,6 @@
 import os
 
-PHOTO_ROOT = os.path.expanduser('~/Pictures/London/.../balcony/')
+IMAGE_ROOT = os.path.expanduser('~/Pictures/London/.../balcony/')
 HI_RES_FOLDER = os.path.join(PHOTO_ROOT, 'construction')
 LO_RES_FOLDER = os.path.join(PHOTO_ROOT, 'construction_lores')
 

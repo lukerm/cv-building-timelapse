@@ -1,8 +1,8 @@
 import os
 
 IMAGE_ROOT = os.path.expanduser('~/Pictures/London/.../balcony/')
-HI_RES_FOLDER = os.path.join(PHOTO_ROOT, 'construction')
-LO_RES_FOLDER = os.path.join(PHOTO_ROOT, 'construction_lores')
+HI_RES_FOLDER = os.path.join(IMAGE_ROOT, 'construction')
+LO_RES_FOLDER = os.path.join(IMAGE_ROOT, 'construction_lores')
 
 CROP_SIZE = (256, 256)
 

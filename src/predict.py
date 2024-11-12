@@ -53,7 +53,7 @@ def get_centroids(prediction_batch: torch.Tensor, macro_offset: tuple, offset_ma
     return coord_predictions
 
 
-def make_single_prediction_crop256(model: torch.nn.Module, img_fpath: str, img_fname: str, keypoint: str) -> Tuple[torch.Tensor, Tuple[int, int]]:
+def make_single_prediction_crop256(model: torch.nn.Module, img_fpath: str, img_fname: str, keypoint: str) -> torch.Tensor:
     img_fullpath = os.path.join(img_fpath, img_fname)
 
     normalize_transform, _ = get_image_transforms()
@@ -63,15 +63,13 @@ def make_single_prediction_crop256(model: torch.nn.Module, img_fpath: str, img_f
     _, _, bl, br, _ = transforms_v2.FiveCrop(size=(512, 512))(input_image)
     if keypoint.startswith('L') or keypoint.startswith('D'):
         my_input_crop = bl
-        orig_offset = (0, 256)  # offset from original lo-res image
     elif keypoint.startswith('C') or keypoint.startswith('R'):
         my_input_crop = br
-        orig_offset = (512, 256)
 
     img_transformed = model_transform(my_input_crop)
     img_batch = torch.cat([crop.unsqueeze(0) for crop in img_transformed])
 
-    return model(img_batch), orig_offset
+    return model(img_batch)
 
 
 if __name__ == "__main__":
@@ -105,7 +103,11 @@ if __name__ == "__main__":
             else:
                 prediction_tensor = torch.load(tensor_save_fpath, weights_only=True)
 
-            # save centroid coordinates as simple DataFrames
+            # calculate & save centroid coordinates as simple DataFrames
+            if keypoint.startswith('L') or keypoint.startswith('D'):
+                orig_offset = (0, 256)  # offset from original lo-res image (for 512x512 crop)
+            elif keypoint.startswith('C') or keypoint.startswith('R'):
+                orig_offset = (512, 256)
             centroids = get_centroids(prediction_tensor, macro_offset=orig_offset, p_cutoff=p_cutoff)
             pd.DataFrame(
                 centroids, columns=['x', 'y']

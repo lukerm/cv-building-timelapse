@@ -117,14 +117,16 @@ if __name__ == "__main__":
             if len(centroids) == 0:
                 no_pred_list.append(img_fname)
 
+            if keypoint in ['D2']:
+                # ad-hoc analysis showed that only the 0th (top-left) crop gave non-spurious results for D2
+                # Note: they are still recorded in the CSV in case you want to refer back later
+                centroids = centroids[:1]
+
             # save visualization with centroids marked
             pixel_offsets = [(0, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]  # looks like a small 'x'
             input_image = read_image(os.path.join(LO_RES_FOLDER, img_fname))
             img_orig = transforms_v2.ToPILImage()(input_image)
-            centroids = get_centroids(prediction_tensor, macro_offset=orig_offset, p_cutoff=p_cutoff)
-            if keypoint in ['D2']:
-                # ad-hoc analysis showed that only the 0th (top-left) crop gave non-spurious results for D2
-                centroids = centroids[:1]
+
             for coord in centroids:
                 for pixel_offset in pixel_offsets:
                     img_orig.putpixel(tuple(coord + pixel_offset), (255, 0, 0))

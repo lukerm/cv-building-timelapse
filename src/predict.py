@@ -1,6 +1,7 @@
 """Run keypoint detection model for ALL images in the LO_RES_FOLDER directory"""
 
 import os
+import time
 from datetime import datetime
 from typing import List, Tuple
 
@@ -134,6 +135,7 @@ if __name__ == "__main__":
             # save image only if there is a reasonable prediction
             if len(centroids) > 0:
                 img_orig.save(os.path.join(save_dir, 'images', img_fname))
+                time.sleep(0.05)
 
             # # 512x512
             # img512 = transforms_v2.ToPILImage()(my_input_crop)

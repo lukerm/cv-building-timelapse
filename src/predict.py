@@ -1,3 +1,5 @@
+"""Run keypoint detection model for ALL images in the LO_RES_FOLDER directory"""
+
 import os
 from datetime import datetime
 from typing import List, Tuple
@@ -45,12 +47,13 @@ def get_centroids(prediction_batch: torch.Tensor, macro_offset: tuple, offset_ma
         else:
             max_coords = np.array((max_points[1][0], max_points[0][0]))  # transpose from matrix space to image space
 
+
         coord_predictions.append(max_coords + macro_offset + offset_map[idx])
 
     return coord_predictions
 
 
-def make_single_prediction_crop256(model: torch.nn.Module, img_fpath: str, img_fname: str, keypoint: str) -> Tuple[torch.Tensor, Tuple[int]]:
+def make_single_prediction_crop256(model: torch.nn.Module, img_fpath: str, img_fname: str, keypoint: str) -> Tuple[torch.Tensor, Tuple[int, int]]:
     img_fullpath = os.path.join(img_fpath, img_fname)
 
     normalize_transform, _ = get_image_transforms()
@@ -72,8 +75,11 @@ def make_single_prediction_crop256(model: torch.nn.Module, img_fpath: str, img_f
 
 
 if __name__ == "__main__":
-    p_cutoff = 0.01
     keypoint = 'D2'
+    # cutoff = 5e-5 for R3; cutoff = 1e-4(?) for D2 (tl crop only)
+    p_cutoffs = {'R1': 0.05, 'R3': 5e-5}  # cut-off values can be surprisingly low for some models
+    p_cutoff = p_cutoffs.get(keypoint, 0.01)
+
     model = load_unet_model(model_path=MODEL_MAP[keypoint])
     experiment_id = MODEL_MAP[keypoint].split('/')[-2]
 
@@ -92,8 +98,9 @@ if __name__ == "__main__":
 
         try:
             # save the raw prediction tensor
+            tensor_save_fpath = os.path.join(save_dir, 'tensors', img_fname.replace('.jpg', '.pt'))
             prediction_tensor, orig_offset = make_single_prediction_crop256(model=model, img_fpath=LO_RES_FOLDER, img_fname=img_fname, keypoint=keypoint)
-            torch.save(prediction_tensor, os.path.join(save_dir, 'tensors', img_fname.replace('.jpg', '.pt')))
+            torch.save(prediction_tensor, tensor_save_fpath)
 
             # save centroid coordinates as simple DataFrames
             centroids = get_centroids(prediction_tensor, macro_offset=orig_offset, p_cutoff=p_cutoff)
@@ -109,15 +116,21 @@ if __name__ == "__main__":
             pixel_offsets = [(0, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]  # looks like a small 'x'
             input_image = read_image(os.path.join(LO_RES_FOLDER, img_fname))
             img_orig = transforms_v2.ToPILImage()(input_image)
-            for coord in get_centroids(prediction_tensor, macro_offset=orig_offset, p_cutoff=p_cutoff):
+            centroids = get_centroids(prediction_tensor, macro_offset=orig_offset, p_cutoff=p_cutoff)
+            if keypoint in ['D2']:
+                # ad-hoc analysis showed that only the 0th (top-left) crop gave non-spurious results for D2
+                centroids = centroids[:1]
+            for coord in centroids:
                 for pixel_offset in pixel_offsets:
                     img_orig.putpixel(tuple(coord + pixel_offset), (255, 0, 0))
-            img_orig.save(os.path.join(save_dir, 'images', img_fname))
 
+            # save image only if there is a reasonable prediction
+            if len(centroids) > 0:
+                img_orig.save(os.path.join(save_dir, 'images', img_fname))
 
             # # 512x512
             # img512 = transforms_v2.ToPILImage()(my_input_crop)
-            # for coord in get_centroids(prediction, macro_offset=(0,0), p_cutoff=p_cutoff):
+            # for coord in get_centroids(prediction_tensor, macro_offset=(0,0), p_cutoff=p_cutoff):
             #     for pixel_offset in pixel_offsets:
             #         img512.putpixel(tuple(coord + pixel_offset), (255, 0, 0))
             # img512.show()
@@ -125,7 +138,5 @@ if __name__ == "__main__":
         except Exception as e:
             print(f'Unexpected Error for image {img_fname}: {e}')
             continue
-
-
 
     pd.DataFrame(no_pred_list).to_csv(os.path.join(save_dir, 'coords', 'no_predictions.csv'), index=False)

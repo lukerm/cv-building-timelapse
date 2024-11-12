@@ -4,7 +4,7 @@ import os
 import numpy as np
 from PIL import Image
 
-from .adjust_imgs import parse_img_filename
+from .video.adjust_imgs import parse_img_filename
 
 LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/labels/project-2-at-2024-10-11-16-11-19bfb516.json')
 

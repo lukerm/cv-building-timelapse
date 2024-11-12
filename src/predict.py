@@ -34,9 +34,16 @@ def load_unet_model(model_path: str) -> torch.nn.Module:
     return model
 
 
-def get_centroids(prediction_batch: torch.Tensor, macro_offset: tuple, offset_map: dict = MICRO_OFFSET_MAP, eps: float = 1e-5, p_cutoff: float = 0.5) -> List[tuple]:
+def get_centroids(
+    prediction_batch: torch.Tensor, macro_offset: tuple, offset_map: dict = MICRO_OFFSET_MAP,
+    eps: float = 1e-5, p_cutoff: float = 0.5, restrict_idx: List[int] = None,
+) -> List[tuple]:
+
     img_maxima = torch.amax(prediction_batch, dim=(1, 2, 3))
     idx_todo = np.where(img_maxima > p_cutoff)[0]
+
+    if restrict_idx is not None:
+        idx_todo = sorted(list(set(restrict_idx).intersection(set(idx_todo))))
 
     coord_predictions = []
     for idx in idx_todo:
@@ -47,7 +54,6 @@ def get_centroids(prediction_batch: torch.Tensor, macro_offset: tuple, offset_ma
             raise ValueError(f'WARNING: multiple maxima detected: {max_points}')
         else:
             max_coords = np.array((max_points[1][0], max_points[0][0]))  # transpose from matrix space to image space
-
 
         coord_predictions.append(max_coords + macro_offset + offset_map[idx])
 
@@ -109,7 +115,9 @@ if __name__ == "__main__":
                 orig_offset = (0, 256)  # offset from original lo-res image (for 512x512 crop)
             elif keypoint.startswith('C') or keypoint.startswith('R'):
                 orig_offset = (512, 256)
-            centroids = get_centroids(prediction_tensor, macro_offset=orig_offset, p_cutoff=p_cutoff)
+
+            restrict_idx = [0] if keypoint == 'D2' else None
+            centroids = get_centroids(prediction_tensor, macro_offset=orig_offset, p_cutoff=p_cutoff, restrict_idx=restrict_idx)
             pd.DataFrame(
                 centroids, columns=['x', 'y']
             ).to_csv(

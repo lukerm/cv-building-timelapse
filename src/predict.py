@@ -105,7 +105,7 @@ if __name__ == "__main__":
             # save the raw prediction tensor
             tensor_save_fpath = os.path.join(save_dir, 'tensors', img_fname.replace('.jpg', '.pt'))
             if not os.path.exists(tensor_save_fpath):
-                prediction_tensor, orig_offset = make_single_prediction_crop256(model=model, img_fpath=LO_RES_FOLDER, img_fname=img_fname, keypoint=keypoint)
+                prediction_tensor = make_single_prediction_crop256(model=model, img_fpath=LO_RES_FOLDER, img_fname=img_fname, keypoint=keypoint)
                 torch.save(prediction_tensor, tensor_save_fpath)
             else:
                 prediction_tensor = torch.load(tensor_save_fpath, weights_only=True)

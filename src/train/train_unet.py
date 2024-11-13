@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     bce_loss =  torch.nn.BCELoss(reduction='mean')
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.75, patience=2, verbose=True)
 
     # Create a dataset and dataloader
     kp = 'R1'

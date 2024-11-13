@@ -23,7 +23,7 @@ nvidia-smi
 sudo apt install -y python3 python3-pip
 pip install torch torchvision
 
-# <<< AMI END: CUDA pytorch GPU image training (ami-04173b0e1f2d9734c) >>>
+# <<< AMI END: CUDA pytorch GPU image training (ami-04173b0e1f2d9734c / ami-0dae2b0d39396a108) >>>
 
 git clone git@github.com:lukerm/cv-building-timelapse
 cd cv-building-timelapse/

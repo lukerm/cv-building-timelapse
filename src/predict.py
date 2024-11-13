@@ -51,7 +51,7 @@ def get_centroids(
         max_points = np.where(pred_t > torch.max(pred_t) - eps)
 
         if len(max_points[0]) > 1 or len(max_points[1]) > 1:
-            raise ValueError(f'WARNING: multiple maxima detected: {max_points}')
+            max_coords = np.array((int(np.mean(max_points[1])), int(np.mean(max_points[0]))))  # transpose from matrix space to image space
         else:
             max_coords = np.array((max_points[1][0], max_points[0][0]))  # transpose from matrix space to image space
 

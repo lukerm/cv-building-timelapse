@@ -33,7 +33,7 @@ if __name__ == '__main__':
     with open(LABELS_FNAME) as j:
         labels = json.load(j)
 
-    labels = [label for label in labels if label['annotations'][0]['result']]
+    labels = [label for label in labels if label.get('annotations', label['predictions'])[0]['result']]
 
     for i, label in enumerate(labels):
         if i > 0 and i % 100 == 0:
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
             # translation
             kp_label = 'R1'
-            r1_result = [res for res in label['annotations'][0]['result'] if kp_label in res['value']['keypointlabels']]
+            r1_result = [res for res in label.get('annotations', label['predictions'])[0]['result'] if kp_label in res['value']['keypointlabels']]
             label_r1_actual_loc = (
                 int(img.width * r1_result[0]['value']['x'] / 100),
                 int(img.height * r1_result[0]['value']['y'] / 100)
@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
             # rotation
             kp_label = 'D2'
-            d2_result = [res for res in label['annotations'][0]['result'] if kp_label in res['value']['keypointlabels']]
+            d2_result = [res for res in label.get('annotations', label['predictions'])[0]['result'] if kp_label in res['value']['keypointlabels']]
             label_d2_actual_loc = (
                 int(img.width * d2_result[0]['value']['x'] / 100),
                 int(img.height * d2_result[0]['value']['y'] / 100)

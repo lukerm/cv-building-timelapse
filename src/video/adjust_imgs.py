@@ -24,10 +24,6 @@ def parse_img_filename(path: str) -> str:
     return new_fname
 
 
-
-
-
-
 if __name__ == '__main__':
 
     with open(LABELS_FNAME) as j:

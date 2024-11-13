@@ -13,7 +13,7 @@ from src.train.train_utils import CustomImageDataset, get_image_transforms, UNet
 CROP_SIZE = 256
 ROOT_DIR_EXPERIMENTS = os.path.expanduser(f'~/cv-building-timelapse/data/experiments/{CROP_SIZE}')
 BATCH_SIZE = 16
-N_EPOCHS = 60
+N_EPOCHS = 150
 
 EXPERIMENT_ID = '001'
 SAVE_PATH = os.path.expanduser(f'~/cv-building-timelapse/models/experiments/{CROP_SIZE}/{EXPERIMENT_ID}')

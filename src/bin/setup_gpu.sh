@@ -35,6 +35,8 @@ pip install -r requirements.txt
 # find and replace instances of my username with 'ubuntu' in image_paths csv files
 export kp="R1"
 cd data/experiments/256/
+cp train/image_paths_${kp}.csv train/image_paths_${kp}_clean.csv
+cp val/image_paths_${kp}.csv val/image_paths_${kp}_clean.csv
 sed -i -e 's/luke/ubuntu/g' train/image_paths_${kp}_clean.csv
 sed -i -e 's/luke/ubuntu/g' val/image_paths_${kp}_clean.csv
 cd ../../../

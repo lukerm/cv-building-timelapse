@@ -35,11 +35,11 @@ def load_unet_model(model_path: str) -> torch.nn.Module:
 
 
 def get_centroids(
-    prediction_batch: torch.Tensor, macro_offset: tuple, offset_map: dict = MICRO_OFFSET_MAP,
+    prediction_tensor: torch.Tensor, macro_offset: tuple, offset_map: dict = MICRO_OFFSET_MAP,
     eps: float = 1e-5, p_cutoff: float = 0.5, restrict_idx: List[int] = None,
 ) -> List[tuple]:
 
-    img_maxima = torch.amax(prediction_batch, dim=(1, 2, 3))
+    img_maxima = torch.amax(prediction_tensor, dim=(1, 2, 3))
     idx_todo = np.where(img_maxima > p_cutoff)[0]
 
     if restrict_idx is not None:
@@ -47,7 +47,7 @@ def get_centroids(
 
     coord_predictions = []
     for idx in idx_todo:
-        pred_t = prediction_batch[idx][0]
+        pred_t = prediction_tensor[idx][0]
         max_points = np.where(pred_t > torch.max(pred_t) - eps)
 
         if len(max_points[0]) > 1 or len(max_points[1]) > 1:

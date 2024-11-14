@@ -280,6 +280,8 @@ if __name__ == "__postmerge__":
                 target_img = df[df['input_crop_loc'] == img]['target_crop_loc'].values[0]
                 my_row += (target_img.replace(os.path.expanduser('~'), '~'),)
             else:
+                # for some reason, this target image doesn't exist for this keypoint
+                # for simplicity, we'll just copy the known zero matrix, i.e. a completely black image
                 new_target_img_name = img.replace('input', os.path.join('target', kp))
                 shutil.copyfile(known_zero_image, new_target_img_name)  # copy image
                 my_row += (new_target_img_name.replace(os.path.expanduser('~'), '~'),)

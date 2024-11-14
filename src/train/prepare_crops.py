@@ -247,3 +247,44 @@ if __name__ == "__postfix__":
     df_fix = pd.DataFrame(new_rows)
     new_filename = os.path.splitext(CSV_FILE)[0] + '_clean.csv'
     df_fix.to_csv(new_filename, index=False)
+
+
+if __name__ == "__postmerge__":
+
+    EXPERIMENTS_DIR = os.path.expanduser('~/cv-building-timelapse/data/experiments/512')
+    keypoints_to_group = ['R1', 'R2', 'R3', 'R4']
+    crop_type_to_accept = '.1.'
+    known_zero_image = os.path.join(EXPERIMENTS_DIR, 'train/target/R4/00acd4db-PXL_20210925_212647637.0.jpg')
+    crop_num = 1  # corresponds to bottom-right crop
+    CSV_FILE_IN = os.path.join(EXPERIMENTS_DIR, 'val/image_paths_<kp>.csv')
+    CSV_FILE_OUT = os.path.join(EXPERIMENTS_DIR, 'val/image_paths_R_group.csv')
+
+    # first collect all known input images
+    known_input_images = set()
+    dfs = {}
+    for kp in keypoints_to_group:
+        df = pd.read_csv(CSV_FILE_IN.replace('<kp>', kp))
+        known_input_images.update(df['input_crop_loc'].values)
+        dfs[kp] = df
+
+    # filter to only acceptable crop type; put them in order
+    known_input_images = {img for img in known_input_images if crop_type_to_accept in img}
+    known_input_images = sorted(list(known_input_images), key=lambda f: f.split('/')[-1].split('-PXL_')[1])
+
+    # then iterate over all known input images and check if they are present in all dataframes
+    rows = []
+    for img in known_input_images:
+        my_row = (img.replace(os.path.expanduser('~'), '~'),)
+        for kp, df in dfs.items():
+            if img in df['input_crop_loc'].values:
+                target_img = df[df['input_crop_loc'] == img]['target_crop_loc'].values[0]
+                my_row += (target_img.replace(os.path.expanduser('~'), '~'),)
+            else:
+                new_target_img_name = img.replace('input', os.path.join('target', kp))
+                shutil.copyfile(known_zero_image, new_target_img_name)  # copy image
+                my_row += (new_target_img_name.replace(os.path.expanduser('~'), '~'),)
+
+        rows.append(my_row)
+
+    df_out = pd.DataFrame(rows, columns=['input_crop_loc'] + [f'{kp}_target_crop_loc' for kp in keypoints_to_group])
+    df_out.to_csv(CSV_FILE_OUT, index=False)

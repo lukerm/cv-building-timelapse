@@ -55,7 +55,7 @@ def get_centroids(
         else:
             max_coords = np.array((max_points[1][0], max_points[0][0]))  # transpose from matrix space to image space
 
-        coord_predictions.append(max_coords + macro_offset + offset_map[idx])
+        coord_predictions.append((max_coords + macro_offset + offset_map[idx], img_maxima[idx].detach().numpy(), idx))
 
     return coord_predictions
 
@@ -118,8 +118,9 @@ if __name__ == "__main__":
 
             restrict_idx = [0] if keypoint == 'D2' else None
             centroids = get_centroids(prediction_tensor, macro_offset=orig_offset, p_cutoff=p_cutoff, restrict_idx=restrict_idx)
+            centroids = [(int(x), int(y), float(p), idx) for (x, y), p, idx in centroids]  # unpack
             pd.DataFrame(
-                centroids, columns=['x', 'y']
+                centroids, columns=['x', 'y', 'p', 'idx']
             ).to_csv(
                 os.path.join(save_dir, 'coords', img_fname.replace('.jpg', '.csv')), index=False,
             )
@@ -132,13 +133,29 @@ if __name__ == "__main__":
                 centroids = centroids[:1]
 
             # save visualization with centroids marked
-            pixel_offsets = [(0, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]  # looks like a small 'x'
+            # looks like a small 'x' (adjust x_radius for larger/smaller 'x')
+            x_radius = 4
+            pixel_offsets = [[
+                k * np.array([-1, -1]),
+                k * np.array([1, -1]),
+                k * np.array([-1, 1]),
+                k * np.array([1, 1]),
+            ] for k in range(x_radius + 1)]
+            pixel_offsets = list(set([tuple(coord.tolist()) for sublist in pixel_offsets for coord in sublist]))  # flatten & uniquify
+
             input_image = read_image(os.path.join(LO_RES_FOLDER, img_fname))
             img_orig = transforms_v2.ToPILImage()(input_image)
 
             for coord in centroids:
                 for pixel_offset in pixel_offsets:
-                    img_orig.putpixel(tuple(coord + pixel_offset), (255, 0, 0))
+                    try:
+                        img_orig.putpixel(
+                            tuple(np.array(coord[:2]) + pixel_offset),
+                            (0, 0, 255) if coord[3] == 0 else (255, 0, 0)
+                        )
+                    # likely due to being near image's edge
+                    except IndexError:
+                        continue
 
             # save image only if there is a reasonable prediction
             if len(centroids) > 0:

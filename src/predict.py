@@ -169,6 +169,6 @@ if __name__ == "__main__":
 
         except Exception as e:
             print(f'Unexpected Error for image {img_fname}: {e}')
-            continue
+            raise
 
     pd.DataFrame(no_pred_list).to_csv(os.path.join(save_dir, 'coords', 'no_predictions.csv'), index=False)

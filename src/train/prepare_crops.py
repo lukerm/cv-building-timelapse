@@ -1,18 +1,20 @@
 import json
 import os
+import shutil
+import time
 
 import numpy as np
 import pandas as pd
 from PIL import Image
 from torchvision.transforms import v2 as transforms_v2
 
-from ..utils import extract_date_from_filename, hash_date
+from src.utils import extract_date_from_filename, hash_date
 
 
 LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/labels/project-2-at-2024-10-11-16-11-19bfb516.json')
 
 IMG_LOAD_DIR = os.path.expanduser('~/mydata/media/')
-CROP_SIZE = (256, 256)
+CROP_SIZE = (512, 512)
 SAVE_ROOT_DIR = os.path.expanduser(f'~/cv-building-timelapse/data/experiments/{CROP_SIZE[0]}')
 os.makedirs(SAVE_ROOT_DIR, exist_ok=True)
 
@@ -78,9 +80,7 @@ if __name__ == "__main__":
     hashes = [hash_date(d) for d in dates]
 
     train_transforms_512 = transforms_v2.Compose([
-        # left padding only as these are labels close to that edge which we don't want to discard too often
-        transforms_v2.RandomCrop(size=CROP_SIZE, padding=(200, 0, 0, 0)),
-        transforms_v2.RandomHorizontalFlip(p=0.5),
+        transforms_v2.FiveCrop(size=CROP_SIZE),
     ])
     train_transforms_256 = transforms_v2.Compose([
         transforms_v2.FiveCrop(size=CROP_SIZE),
@@ -118,7 +118,7 @@ if __name__ == "__main__":
                 # Take random (train) / controlled (val/test) crops of the original image, and the transformed Gaussian output
                 # Note: we use md5-hash shuffling (last digit) to determine the train/val/test folds
                 # Note: for val/test, we take two crops (bottom left and bottom right) as these are the most interesting regions
-                if h[-1] in TRAIN_SET_DIGITS:
+                if False: #h[-1] in TRAIN_SET_DIGITS:
                     fold = 'train'
 
                     for c in range(N_TRAIN_CROPS):
@@ -139,21 +139,30 @@ if __name__ == "__main__":
                                     'target_crop_loc': [target_save_path]})
                             ])
 
-                elif h[-1] in VAL_SET_DIGITS + TEST_SET_DIGITS:
-                    fold = 'val' if h[-1] in VAL_SET_DIGITS else 'test'
+                elif h[-1] in TRAIN_SET_DIGITS + VAL_SET_DIGITS + TEST_SET_DIGITS:
+                    if h[-1] in TRAIN_SET_DIGITS:
+                        fold = 'train'
+                    elif h[-1] in VAL_SET_DIGITS:
+                        fold = 'val'
+                    else:
+                        fold = 'train'  # although this looks odd, we're not really using test fold, so add it into training dataset
 
                     input_crops, target_crops = val_transforms(img, outputs)
                     _, _, bl_crop, br_crop, _ = input_crops
                     bl_input_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'input', f'{fname_split_ext[0]}.0{fname_split_ext[1]}')
                     br_input_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'input', f'{fname_split_ext[0]}.1{fname_split_ext[1]}')
                     bl_crop.save(bl_input_save_path)
+                    time.sleep(0.05)
                     br_crop.save(br_input_save_path)
+                    time.sleep(0.05)
                     for kp, target_imgs in target_crops.items():
                         _, _, bl_target_crop, br_target_crop, _ = target_imgs
                         bl_target_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'target', kp, f'{fname_split_ext[0]}.0{fname_split_ext[1]}')
                         br_target_save_path = os.path.join(SAVE_ROOT_DIR, fold, 'target', kp, f'{fname_split_ext[0]}.1{fname_split_ext[1]}')
                         bl_target_crop.save(bl_target_save_path)
+                        time.sleep(0.01)
                         br_target_crop.save(br_target_save_path)
+                        time.sleep(0.01)
 
                         # record the crop locations in the relevant dataframe
                         dfs[fold][kp] = pd.concat([

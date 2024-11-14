@@ -80,10 +80,8 @@ def make_single_prediction_crop256(model: torch.nn.Module, img_fpath: str, img_f
 
 
 if __name__ == "__main__":
-    keypoint = 'D2'
-    # cutoff = 5e-5 for R3; cutoff = 1e-4(?) for D2 (tl crop only)
-    p_cutoffs = {'R1': 0.05, 'R3': 5e-5}  # cut-off values can be surprisingly low for some models
-    p_cutoff = p_cutoffs.get(keypoint, 0.01)
+    keypoint = 'R3'  # TODO: configure
+    p_cutoff = 0.01  # cut-off values can be surprisingly low for some models
 
     model = load_unet_model(model_path=MODEL_MAP[keypoint])
     experiment_id = MODEL_MAP[keypoint].split('/')[-2]

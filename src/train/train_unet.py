@@ -99,7 +99,10 @@ if __name__ == "__main__":
                 time_elapsed = time.time() - since_val_start
                 t = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 val_loss_history.append(val_loss)
-                val_loss_line = f'({t}):    VAL: batch {str(b + 1).zfill(3)} loss: {val_loss:.6f} max_metric: {keep_max_metric:.3f} (time: {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s)'
+                val_loss_line = f'''\n\t({t}):    VAL: batch {str(b + 1).zfill(3)}
+                                                       loss: {val_loss:.6f}
+                                                       n-way loss: {val_nway_loss.round(4)}
+                                                       max_metric: {keep_max_metric.round(4)}'''
                 print(val_loss_line)
                 with open(os.path.join(SAVE_PATH, 'losses.txt'), 'a') as f:
                     f.write(val_loss_line + '\n')

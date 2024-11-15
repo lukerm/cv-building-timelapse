@@ -5,15 +5,22 @@ from math import atan2, cos, sin, pi
 from PIL import Image
 
 
-LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/predictions/labels_some_errors_D2_R1.json')
+LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/predictions/labels_pretty_good_DL_R_groups_2024-11-15.json')
 
 IMG_LOAD_DIR = os.path.expanduser('~/Pictures/London/.../balcony/construction')
-IMG_SAVE_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translated_rotated/v4_preds_v1/')
+IMG_SAVE_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translated_rotated/v5_preds_v2/')
 os.makedirs(IMG_SAVE_DIR, exist_ok=True)
 
+# inferred from labels of: PXL_20220621_052524018.jpg
 TARGET_LOCS = {
-    'D2': (907, 2045),
-    'R1': (2672, 1896),
+    'L2': (140, 2148),
+    'D1': (1007, 1957),
+    'D2': (914, 2049),
+    'D3': (897, 2147),
+    'R1': (2669, 1885),
+    'R2': (2933, 2192),
+    'R3': (3207, 1978),
+    'R4': (3522, 1917),
 }
 
 
@@ -40,25 +47,29 @@ if __name__ == '__main__':
         img_orig_path = os.path.join(IMG_LOAD_DIR, parse_img_filename(img_loc))
         with Image.open(img_orig_path) as img:
 
-            # translation
-            kp_label = 'R1'
-            r1_result = [res for res in label.get('annotations', label['predictions'])[0]['result'] if kp_label in res['value']['keypointlabels']]
-            label_r1_actual_loc = (
-                int(img.width * r1_result[0]['value']['x'] / 100),
-                int(img.height * r1_result[0]['value']['y'] / 100)
-            )
-            x_trans = label_r1_actual_loc[0] - TARGET_LOCS[kp_label][0]
-            y_trans = label_r1_actual_loc[1] - TARGET_LOCS[kp_label][1]
+            # translation: most confidently predicted point from right-hand group
+            right_results = [res for res in label.get('annotations', label['predictions'])[0]['result'] if not res['value']['is_left']]
+            right_confident_result = sorted(right_results, key=lambda x: x['value']['p'], reverse=True)[0]
+            kp_label_right = right_confident_result['value']['keypointlabels'][0]
 
-            # rotation
-            kp_label = 'D2'
-            d2_result = [res for res in label.get('annotations', label['predictions'])[0]['result'] if kp_label in res['value']['keypointlabels']]
-            label_d2_actual_loc = (
-                int(img.width * d2_result[0]['value']['x'] / 100),
-                int(img.height * d2_result[0]['value']['y'] / 100)
+            label_right_actual_loc = (
+                int(img.width * right_confident_result['value']['x'] / 100),
+                int(img.height * right_confident_result['value']['y'] / 100)
             )
-            target_angle = atan2( (TARGET_LOCS['R1'][1] - TARGET_LOCS['D2'][1]) , (TARGET_LOCS['R1'][0] - TARGET_LOCS['D2'][0]))
-            actual_angle = atan2( (label_r1_actual_loc[1] - label_d2_actual_loc[1]) , (label_r1_actual_loc[0] - label_d2_actual_loc[0]))
+            x_trans = label_right_actual_loc[0] - TARGET_LOCS[kp_label_right][0]
+            y_trans = label_right_actual_loc[1] - TARGET_LOCS[kp_label_right][1]
+
+            # rotation: rotate according to most confidently predicted point from left-hand group
+            left_results = [res for res in label.get('annotations', label['predictions'])[0]['result'] if res['value']['is_left']]
+            left_confident_result = sorted(left_results, key=lambda x: x['value']['p'], reverse=True)[0]
+            kp_label_left = left_confident_result['value']['keypointlabels'][0]
+
+            label_left_actual_loc = (
+                int(img.width * left_confident_result['value']['x'] / 100),
+                int(img.height * left_confident_result['value']['y'] / 100)
+            )
+            target_angle = atan2( (TARGET_LOCS[kp_label_right][1] - TARGET_LOCS[kp_label_left][1]) , (TARGET_LOCS[kp_label_right][0] - TARGET_LOCS[kp_label_left][0]))
+            actual_angle = atan2( (label_right_actual_loc[1] - label_left_actual_loc[1]) , (label_right_actual_loc[0] - label_left_actual_loc[0]))
             rotation_angle = actual_angle - target_angle
             rotation_angle = rotation_angle * 180 / pi  # convert to degrees
 
@@ -68,7 +79,7 @@ if __name__ == '__main__':
                     0, 1, y_trans,
                 )
             ).rotate(
-                rotation_angle, center=TARGET_LOCS['R1'],
+                rotation_angle, center=TARGET_LOCS[kp_label_right],
             ).save(
                 os.path.join(IMG_SAVE_DIR, parse_img_filename(img_loc))
             )

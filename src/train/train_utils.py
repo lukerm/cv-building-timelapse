@@ -9,10 +9,6 @@ from torch.utils.data import Dataset
 from torchvision.io import read_image
 
 
-ROOT_DIR_EXPERIMENTS = os.path.expanduser('~/cv-building-timelapse/data/experiments')
-BATCH_SIZE = 64
-
-
 class CustomImageDataset(Dataset):
     def __init__(self, annotations_filename: str, img_rootdir: str, keypoint_label: str, input_transform=None, target_transform=None):
         self.img_labels = pd.read_csv(os.path.join(img_rootdir, annotations_filename))

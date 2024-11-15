@@ -85,16 +85,17 @@ if __name__ == "__main__":
                         nway_loss = bce_loss_nway_monitor(val_target, val_prediction)
                         val_nway_loss += torch.mean(nway_loss, dim=(0,2,3)) * len(val_image)  # length n vector
 
+                        # n-way max metric: max metrics keeps an eye on whether we're converging to a trivial 0 solution
+                        # It should stay near 1 ideally
+                        target_max = torch.amax(val_target, dim=(2, 3))
+                        pred_max = torch.amax(val_prediction, dim=(2, 3))
+                        keep_max_metric_numer += torch.sum(target_max * pred_max, dim=0)
+                        keep_max_metric_denom += torch.sum(target_max, dim=0)  # counts only those with 1s
 
-                        target_max = torch.amax(val_target.squeeze(1), dim=(1,2))
-                        pred_max = torch.amax(val_prediction.squeeze(1), dim=(1,2))
-                        keep_max_metric_numer += sum(target_max * pred_max)
-                        keep_max_metric_denom += sum(target_max)  # counts only those with 1s
 
                 val_loss = val_loss / len(val_dataloader.dataset)
                 val_nway_loss = (val_nway_loss / len(val_dataloader.dataset)).detach().numpy()
-                # max metrics keeps an eye on whether we're converging to a trivial 0 solution - it should stay near 1 ideally
-                keep_max_metric = keep_max_metric_numer / keep_max_metric_denom
+                keep_max_metric = (keep_max_metric_numer / keep_max_metric_denom).detach().numpy()
                 time_elapsed = time.time() - since_val_start
                 t = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 val_loss_history.append(val_loss)

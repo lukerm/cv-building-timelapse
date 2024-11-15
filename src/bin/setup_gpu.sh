@@ -56,7 +56,7 @@ aws s3 sync . s3://lukerm-ds-closed/cv-building-timelapse/models/experiments/512
 # Run this code stub in a tmux pane to check for instance termination - it should shout WARNING when the instance is
 # about to be terminated (TOKEN lasts for 6 hours)
 TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
-for i in {1..10000}; do
+for i in {1..4320}; do
   sleep 5;
   echo '.';
   DATA=`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-action --silent`;

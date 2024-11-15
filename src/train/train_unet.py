@@ -94,8 +94,8 @@ if __name__ == "__main__":
 
 
                 val_loss = val_loss / len(val_dataloader.dataset)
-                val_nway_loss = (val_nway_loss / len(val_dataloader.dataset)).detach().numpy()
-                keep_max_metric = (keep_max_metric_numer / keep_max_metric_denom).detach().numpy()
+                val_nway_loss = (val_nway_loss.to('cpu') / len(val_dataloader.dataset)).detach().numpy()
+                keep_max_metric = (keep_max_metric_numer.to('cpu') / keep_max_metric_denom.to('cpu')).detach().numpy()
                 time_elapsed = time.time() - since_val_start
                 t = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 val_loss_history.append(val_loss)

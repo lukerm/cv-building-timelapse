@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 
 from src.train.train_utils import CustomImageDataset, CustomImageMultiOutputDataset, get_image_transforms, UNet
 
-CROP_SIZE = 256
+CROP_SIZE = 512
 ROOT_DIR_EXPERIMENTS = os.path.expanduser(f'~/cv-building-timelapse/data/experiments/{CROP_SIZE}')
 BATCH_SIZE = 40
 N_EPOCHS = 150

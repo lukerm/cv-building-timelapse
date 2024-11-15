@@ -21,8 +21,11 @@ os.makedirs(SAVE_PATH, exist_ok=True)
 
 if __name__ == "__main__":
 
+    kp = 'R_group'
+    out_channels_group = 4
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = UNet(in_channels=3, out_channels=1).to(device=device)
+    model = UNet(in_channels=3, out_channels=out_channels_group).to(device=device)
     if torch.cuda.is_available():
         model.cuda()
 

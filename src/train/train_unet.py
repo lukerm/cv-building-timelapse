@@ -30,6 +30,7 @@ if __name__ == "__main__":
         model.cuda()
 
     bce_loss =  torch.nn.BCELoss(reduction='mean')
+    bce_loss_nway_monitor = torch.nn.BCELoss(reduction='none')
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.75, patience=2, verbose=True)
 
@@ -71,6 +72,7 @@ if __name__ == "__main__":
                 model.eval()
                 since_val_start = time.time()
                 val_loss = 0.
+                val_nway_loss = 0.
                 keep_max_metric_numer, keep_max_metric_denom = 0., 0.
 
                 with torch.no_grad():
@@ -79,6 +81,10 @@ if __name__ == "__main__":
                         val_prediction = model(val_image)
                         loss = bce_loss(val_target, val_prediction)
                         val_loss += loss.item() * len(val_image)
+                        # monitor the n-way BCE loss e.g. n = 4 for group ('R1', 'R2', 'R3', 'R4')
+                        nway_loss = bce_loss_nway_monitor(val_target, val_prediction)
+                        val_nway_loss += torch.mean(nway_loss, dim=(0,2,3)) * len(val_image)  # length n vector
+
 
                         target_max = torch.amax(val_target.squeeze(1), dim=(1,2))
                         pred_max = torch.amax(val_prediction.squeeze(1), dim=(1,2))
@@ -86,6 +92,7 @@ if __name__ == "__main__":
                         keep_max_metric_denom += sum(target_max)  # counts only those with 1s
 
                 val_loss = val_loss / len(val_dataloader.dataset)
+                val_nway_loss = (val_nway_loss / len(val_dataloader.dataset)).detach().numpy()
                 # max metrics keeps an eye on whether we're converging to a trivial 0 solution - it should stay near 1 ideally
                 keep_max_metric = keep_max_metric_numer / keep_max_metric_denom
                 time_elapsed = time.time() - since_val_start

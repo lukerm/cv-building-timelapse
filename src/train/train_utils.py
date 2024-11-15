@@ -36,6 +36,38 @@ class CustomImageDataset(Dataset):
         return input_image, target_image
 
 
+class CustomImageMultiOutputDataset(Dataset):
+    def __init__(self, annotations_filename: str, img_rootdir: str, input_transform=None, target_transform=None):
+        self.img_labels = pd.read_csv(os.path.join(img_rootdir, annotations_filename))
+        self.img_rootdir = img_rootdir
+        self.input_transform = input_transform
+        self.target_transform = target_transform
+
+    def __len__(self):
+        return len(self.img_labels)
+
+    def __getitem__(self, idx):
+        input_img_path = os.path.join(self.img_rootdir, 'input', self.img_labels.iloc[idx, 0].split('/')[-1])
+        input_image = read_image(input_img_path)
+        if self.input_transform:
+            input_image = self.input_transform(input_image)
+
+        target_imgs_to_concat = []
+        target_columns = self.img_labels.columns[1:]
+        for column in target_columns:
+            kp = column.split('_')[0]
+            target_img_path = os.path.join(self.img_rootdir, 'target', kp, self.img_labels[column].iloc[idx].split('/')[-1])
+            my_target_image = read_image(target_img_path)
+
+            if self.target_transform:
+                my_target_image = self.target_transform(my_target_image)
+
+            target_imgs_to_concat.append(my_target_image)
+        target_image = torch.cat(target_imgs_to_concat, dim=0)
+
+        return input_image, target_image
+
+
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()

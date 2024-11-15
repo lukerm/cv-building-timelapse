@@ -166,6 +166,7 @@ if __name__ == "__main__":
             ).to_csv(
                 os.path.join(save_dir, 'coords', img_fname.replace('.jpg', '.csv')), index=False,
             )
+            centroids = [(x, y, p, idx) for x, y, p, idx in centroids if p > p_cutoff]  # remove low-confidence predictions
             if len(centroids) == 0:
                 no_pred_list.append(img_fname)
 

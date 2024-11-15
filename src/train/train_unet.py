@@ -141,7 +141,7 @@ if __name__ == "__main__":
             if np.isnan(loss.item()) or np.isinf(loss.item()):
                 print('WARNING: NaN/Inf loss detected!')
 
-            report_cadence = 10
+            report_cadence = 5
             if b % report_cadence == report_cadence - 1:
                 last_loss = running_loss / report_cadence
                 train_loss_history.append(last_loss)

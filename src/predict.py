@@ -80,10 +80,11 @@ def make_single_prediction_crop256(model: torch.nn.Module, img_fpath: str, img_f
 
 
 if __name__ == "__main__":
-    keypoint = 'R3'  # TODO: configure
+    keypoint = 'R_group'  # TODO: configure
+    out_channels = 4
     p_cutoff = 0.01  # cut-off values can be surprisingly low for some models
 
-    model = load_unet_model(model_path=MODEL_MAP[keypoint])
+    model = load_unet_model(model_path=MODEL_MAP[keypoint], out_channels=out_channels)
     experiment_id = MODEL_MAP[keypoint].split('/')[-2]
 
     save_dir = os.path.join(PREDS_SAVE_ROOT, keypoint, experiment_id)

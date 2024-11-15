@@ -79,6 +79,21 @@ def make_single_prediction_crop256(model: torch.nn.Module, img_fpath: str, img_f
     return model(img_batch)
 
 
+def make_single_prediction_crop512(model: torch.nn.Module, img_fpath: str, img_fname: str, keypoint: str) -> torch.Tensor:
+    img_fullpath = os.path.join(img_fpath, img_fname)
+    input_image = read_image(img_fullpath).unsqueeze(0)
+    _, _, bl, br, _ = transforms_v2.FiveCrop(size=(512, 512))(input_image)
+    if keypoint.startswith('L') or keypoint.startswith('D'):
+        my_input_crop = bl
+    elif keypoint.startswith('C') or keypoint.startswith('R'):
+        my_input_crop = br
+
+    normalize_transform, _ = get_image_transforms()
+    img_transformed = normalize_transform(my_input_crop)  # only normalization, no need for second FiveCrop op
+
+    return model(img_transformed)
+
+
 if __name__ == "__main__":
     keypoint = 'R_group'  # TODO: configure
     out_channels = 4

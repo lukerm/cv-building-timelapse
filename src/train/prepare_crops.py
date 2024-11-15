@@ -255,7 +255,6 @@ if __name__ == "__postmerge__":
     keypoints_to_group = ['R1', 'R2', 'R3', 'R4']
     crop_type_to_accept = '.1.'
     known_zero_image = os.path.join(EXPERIMENTS_DIR, 'train/target/R4/00acd4db-PXL_20210925_212647637.0.jpg')
-    crop_num = 1  # corresponds to bottom-right crop
     CSV_FILE_IN = os.path.join(EXPERIMENTS_DIR, 'val/image_paths_<kp>.csv')
     CSV_FILE_OUT = os.path.join(EXPERIMENTS_DIR, 'val/image_paths_R_group.csv')
 

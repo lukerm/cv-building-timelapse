@@ -28,11 +28,13 @@ pip install torch torchvision
 git clone git@github.com:lukerm/cv-building-timelapse
 cd cv-building-timelapse/
 
-aws s3 sync s3://lukerm-ds-closed/cv-building-timelapse/data/experiments/256/ data/experiments/256/
+#aws s3 sync s3://lukerm-ds-closed/cv-building-timelapse/data/experiments/256/ data/experiments/256/
+aws s3 sync s3://lukerm-ds-closed/cv-building-timelapse/data/experiments/512/ data/experiments/512/
 
 pip install -r requirements.txt
 
 # find and replace instances of my username with 'ubuntu' in image_paths csv files
+# note: not necessary for grouped image paths for new 512 dataset
 export kp="R1"
 cd data/experiments/256/
 cp train/image_paths_${kp}.csv train/image_paths_${kp}_clean.csv

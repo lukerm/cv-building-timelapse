@@ -7,8 +7,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-# from .train_utils import CustomImageDataset, get_image_transforms, UNet
-from src.train.train_utils import CustomImageDataset, get_image_transforms, UNet
+from src.train.train_utils import CustomImageDataset, CustomImageMultiOutputDataset, get_image_transforms, UNet
 
 CROP_SIZE = 256
 ROOT_DIR_EXPERIMENTS = os.path.expanduser(f'~/cv-building-timelapse/data/experiments/{CROP_SIZE}')
@@ -32,22 +31,19 @@ if __name__ == "__main__":
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.75, patience=2, verbose=True)
 
     # Create a dataset and dataloader
-    kp = 'R1'
     input_transform, target_transform = get_image_transforms()
 
-    train_dataset = CustomImageDataset(
-        annotations_filename=f'image_paths_{kp}_clean.csv',
+    train_dataset = CustomImageMultiOutputDataset(
+        annotations_filename=f'image_paths_R_group.csv',
         img_rootdir=os.path.join(ROOT_DIR_EXPERIMENTS, 'train'),
-        keypoint_label=kp,
         input_transform=input_transform,
         target_transform=target_transform,
     )
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    val_dataset = CustomImageDataset(
-        annotations_filename=f'image_paths_{kp}_clean.csv',
+    val_dataset = CustomImageMultiOutputDataset(
+        annotations_filename=f'image_paths_R_group.csv',
         img_rootdir=os.path.join(ROOT_DIR_EXPERIMENTS, 'val'),
-        keypoint_label=kp,
         input_transform=input_transform,
         target_transform=target_transform,
     )

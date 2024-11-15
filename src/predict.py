@@ -27,8 +27,8 @@ PREDS_SAVE_ROOT = os.path.expanduser('~/cv-building-timelapse/data/predictions')
 os.makedirs(PREDS_SAVE_ROOT, exist_ok=True)
 
 
-def load_unet_model(model_path: str) -> torch.nn.Module:
-    model = UNet(in_channels=3, out_channels=1).to(device=torch.device('cpu'))
+def load_unet_model(model_path: str, out_channels: int = 1) -> torch.nn.Module:
+    model = UNet(in_channels=3, out_channels=out_channels).to(device=torch.device('cpu'))
     model.load_state_dict(torch.load(model_path, weights_only=True, map_location=torch.device('cpu')))
     model.eval()
     return model

@@ -60,6 +60,27 @@ def get_centroids(
     return coord_predictions
 
 
+def get_centroids_512(
+    prediction_tensor: torch.Tensor, macro_offset: tuple, eps: float = 1e-5,
+) -> List[tuple]:
+
+    img_maxima = torch.amax(prediction_tensor, dim=(0, 2, 3))  # note: assumes one in batch
+
+    coord_predictions = []
+    for idx in range(len(img_maxima)):
+        pred_t = prediction_tensor[0][idx]
+        max_points = np.where(pred_t > torch.max(pred_t) - eps)
+
+        if len(max_points[0]) > 1 or len(max_points[1]) > 1:
+            max_coords = np.array((int(np.mean(max_points[1])), int(np.mean(max_points[0]))))  # transpose from matrix space to image space
+        else:
+            max_coords = np.array((max_points[1][0], max_points[0][0]))  # transpose from matrix space to image space
+
+        coord_predictions.append((max_coords + macro_offset, img_maxima[idx].detach().numpy(), idx))
+
+    return coord_predictions
+
+
 def make_single_prediction_crop256(model: torch.nn.Module, img_fpath: str, img_fname: str, keypoint: str) -> torch.Tensor:
     img_fullpath = os.path.join(img_fpath, img_fname)
 

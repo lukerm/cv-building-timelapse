@@ -154,8 +154,12 @@ if __name__ == "__main__":
             elif keypoint.startswith('C') or keypoint.startswith('R'):
                 orig_offset = (512, 256)
 
-            restrict_idx = [0] if keypoint == 'D2' else None
-            centroids = get_centroids(prediction_tensor, macro_offset=orig_offset, p_cutoff=p_cutoff, restrict_idx=restrict_idx)
+            if CROP_SIZE[0] == 256:
+                restrict_idx = [0] if keypoint == 'D2' else None
+                centroids = get_centroids(prediction_tensor, macro_offset=orig_offset, p_cutoff=p_cutoff, restrict_idx=restrict_idx)
+            elif CROP_SIZE[0] == 512:
+                centroids = get_centroids_512(prediction_tensor, macro_offset=orig_offset)
+
             centroids = [(int(x), int(y), float(p), idx) for (x, y), p, idx in centroids]  # unpack
             pd.DataFrame(
                 centroids, columns=['x', 'y', 'p', 'idx']

@@ -21,7 +21,7 @@ os.makedirs(SAVE_PATH, exist_ok=True)
 
 if __name__ == "__main__":
 
-    kp = 'R_group'
+    kp = 'DL_group'
     out_channels_group = 4
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     input_transform, target_transform = get_image_transforms()
 
     train_dataset = CustomImageMultiOutputDataset(
-        annotations_filename=f'image_paths_R_group.csv',
+        annotations_filename=f'image_paths_DL_group.csv',
         img_rootdir=os.path.join(ROOT_DIR_EXPERIMENTS, 'train'),
         input_transform=input_transform,
         target_transform=target_transform,
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     val_dataset = CustomImageMultiOutputDataset(
-        annotations_filename=f'image_paths_R_group.csv',
+        annotations_filename=f'image_paths_DL_group.csv',
         img_rootdir=os.path.join(ROOT_DIR_EXPERIMENTS, 'val'),
         input_transform=input_transform,
         target_transform=target_transform,

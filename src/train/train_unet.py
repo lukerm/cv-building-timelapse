@@ -11,7 +11,7 @@ from src.train.train_utils import CustomImageDataset, CustomImageMultiOutputData
 
 CROP_SIZE = 512
 ROOT_DIR_EXPERIMENTS = os.path.expanduser(f'~/cv-building-timelapse/data/experiments/{CROP_SIZE}')
-BATCH_SIZE = 20
+BATCH_SIZE = 12
 N_EPOCHS = 150
 
 EXPERIMENT_ID = '001'

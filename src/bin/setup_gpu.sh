@@ -47,3 +47,9 @@ cd ../../../
 # TODO: tmux setup
 # TODO: configure experiment ID and hyperparameters
 PYTHONPATH=. python3 src/train/train_unet.py
+
+
+# Run this every so often in a tmux pane to save models and training logs to S3
+cd models/experiments/512/
+aws s3 sync . s3://lukerm-ds-closed/cv-building-timelapse/models/experiments/512/
+

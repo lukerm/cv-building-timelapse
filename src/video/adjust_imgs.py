@@ -1,11 +1,13 @@
 import json
 import os
 from math import atan2, cos, sin, pi
+from typing import List
 
 from PIL import Image
 
 
 LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/predictions/labels_pretty_good_DL_R_groups_2024-11-15.json')
+LABELS_CHOSEN_FNAME = os.path.expanduser('~/cv-building-timelapse/data/predictions/chosen_predictions_2024-11-20.json')
 
 IMG_LOAD_DIR = os.path.expanduser('~/Pictures/London/.../balcony/construction')
 IMG_SAVE_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translated_rotated/v5_preds_v2/')
@@ -31,12 +33,24 @@ def parse_img_filename(path: str) -> str:
     return new_fname
 
 
+def get_restricted_photo_list(photos_json_fname: str) -> List[str]:
+    with open(photos_json_fname) as j:
+        photos = json.load(j)
+
+    return photos
+
+
 if __name__ == '__main__':
 
     with open(LABELS_FNAME) as j:
         labels = json.load(j)
 
     labels = [label for label in labels if label.get('annotations', label['predictions'])[0]['result']]
+
+    photos_json_fname = LABELS_CHOSEN_FNAME
+    if photos_json_fname is not None:
+        photos = get_restricted_photo_list(photos_json_fname)
+        labels = [label for label in labels if label['data']['img'] in photos]
 
     for i, label in enumerate(labels):
         if i > 0 and i % 100 == 0:

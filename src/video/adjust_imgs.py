@@ -3,7 +3,7 @@ import os
 from math import atan2, cos, sin, pi
 from typing import List
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/predictions/labels_pretty_good_DL_R_groups_2024-11-15.json')
@@ -12,6 +12,9 @@ LABELS_CHOSEN_FNAME = os.path.expanduser('~/cv-building-timelapse/data/predictio
 IMG_LOAD_DIR = os.path.expanduser('~/Pictures/London/.../balcony/construction')
 IMG_SAVE_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translated_rotated/v5_preds_v2/')
 os.makedirs(IMG_SAVE_DIR, exist_ok=True)
+
+# Whether to create a parallel version of the image with a D1-R1 guideline and the date
+ANNOTATED_COPY = True
 
 # inferred from labels of: PXL_20220621_052524018.jpg
 TARGET_LOCS = {
@@ -41,6 +44,9 @@ def get_restricted_photo_list(photos_json_fname: str) -> List[str]:
 
 
 if __name__ == '__main__':
+
+    if ANNOTATED_COPY:
+        os.makedirs(IMG_SAVE_DIR[:-1] + 'a', exist_ok=True)
 
     with open(LABELS_FNAME) as j:
         labels = json.load(j)
@@ -86,14 +92,20 @@ if __name__ == '__main__':
             actual_angle = atan2( (label_right_actual_loc[1] - label_left_actual_loc[1]) , (label_right_actual_loc[0] - label_left_actual_loc[0]))
             rotation_angle = actual_angle - target_angle
             rotation_angle = rotation_angle * 180 / pi  # convert to degrees
-
-            img.transform(
+            img_transformed = img.transform(
                 img.size, Image.AFFINE, (
                     1, 0, x_trans,
                     0, 1, y_trans,
                 )
             ).rotate(
                 rotation_angle, center=TARGET_LOCS[kp_label_right],
-            ).save(
-                os.path.join(IMG_SAVE_DIR, parse_img_filename(img_loc))
             )
+            img_transformed.save(os.path.join(IMG_SAVE_DIR, parse_img_filename(img_loc)))
+
+            # truth annotations
+            if ANNOTATED_COPY:
+                draw = ImageDraw.Draw(img_transformed)
+                draw.line([TARGET_LOCS['D1'], TARGET_LOCS['R1']], width=5, fill='red')
+                draw.text((50, 50), parse_img_filename(img_loc).split('_')[1], fill='red', font_size=50)
+
+                img_transformed.save(os.path.join(IMG_SAVE_DIR[:-1] + 'a', parse_img_filename(img_loc)))

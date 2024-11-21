@@ -5,12 +5,11 @@ from typing import List
 
 from PIL import Image, ImageDraw
 
-
-LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/predictions/labels_pretty_good_DL_R_groups_2024-11-15.json')
+LABELS_FNAME = os.path.expanduser('~/cv-building-timelapse/data/predictions/labels_postfix_DL_R_groups_2024-11-21_all.json')
 LABELS_CHOSEN_FNAME = os.path.expanduser('~/cv-building-timelapse/data/predictions/chosen_predictions_2024-11-20.json')
 
 IMG_LOAD_DIR = os.path.expanduser('~/Pictures/London/.../balcony/construction')
-IMG_SAVE_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translated_rotated/v5_preds_v2/')
+IMG_SAVE_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translated_rotated/v6_preds_v3/')
 os.makedirs(IMG_SAVE_DIR, exist_ok=True)
 
 # Whether to create a parallel version of the image with a D1-R1 guideline and the date

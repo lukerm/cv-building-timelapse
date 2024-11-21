@@ -78,6 +78,6 @@ if __name__ == "__main__":
             'predictions': [{'result': my_results,}],
         })
 
-    save_fname = 'labels_pretty_good_DL_R_groups_2024-11-15.json'
+    save_fname = 'labels_postfix_DL_R_groups_2024-11-21_all.json'
     with open(os.path.join(PREDICTIONS_ROOT, save_fname), 'w') as j:
         json.dump(out_labels, j)

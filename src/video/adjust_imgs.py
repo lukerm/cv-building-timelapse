@@ -58,6 +58,10 @@ if __name__ == '__main__':
         photos = get_restricted_photo_list(photos_json_fname)
         labels = [label for label in labels if label['data']['img'] in photos]
 
+    rerun_list = []  # None or [] to ignore this
+    if rerun_list:
+        labels = [label for label in labels if label['data']['img'] in rerun_list]
+
     for i, label in enumerate(labels):
         if i > 0 and i % 100 == 0:
             print(f'Processed {i} / {len(labels)} labels')

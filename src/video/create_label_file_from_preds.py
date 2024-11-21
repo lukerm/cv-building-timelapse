@@ -56,9 +56,6 @@ if __name__ == "__main__":
     df_dups['date'] = df_dups['img_filename'].apply(extract_date_from_filename)
     df_dups = df_dups[df_dups['date'] >= date(2021, 9, 1)]
 
-    # TODO: remove this logic - it's only for creating test videos. In reality, we want all labels available
-    df_dups = df_dups.groupby(['date', 'kp']).first().reset_index()
-
     out_labels = []
     for img_filename in df_dups['img_filename'].unique():
         my_results = []

@@ -8,8 +8,9 @@ IMG_SAVE_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translate
 os.makedirs(IMG_SAVE_DIR, exist_ok=True)
 
 # (left, upper, right, lower)
-CROP_DIMS = (190, 146, 3740, 2963)  # see: scratch file to see how to get these values (v3)
-
+# see: scratch file to see how to get these values (v3)
+# note: +1 is to make the height divisible by 2
+CROP_DIMS = (190, 146, 3740, 2963+1)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 
 _Using Computer Vision to build a timelapse of a construction site._
 
-_Note: as the video timelapse is rich content, it must be viewed on the ZL Labs [website](https://zl-labs.tech/post/2024-12-06-cv-building-timelapse)._
+_Note: as the timelapse video is rich content, it must be viewed on the ZL Labs [website](https://zl-labs.tech/post/2024-12-06-cv-building-timelapse)._
 
 [![Main Image](/image/cvbt_20230404_sbs.jpg)](/image/cvbt_20230404_sbs.jpg)
 

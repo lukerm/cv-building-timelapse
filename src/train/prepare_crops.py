@@ -24,7 +24,7 @@ TRAIN_SET_DIGITS = ['4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
 
 TARGET_LABELS = ['L1', 'L2', 'L3', 'R1', 'R2', 'R3', 'R4', 'D1', 'D2', 'D3', 'C1', 'C2',]
 
-N_TRAIN_CROPS = 5  # variable valid only for 512 mode
+N_TRAIN_CROPS = 5  # note: this is now effectively ignored
 SIGMA = 2.
 
 

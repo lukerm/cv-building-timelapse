@@ -4,13 +4,12 @@ from PIL import Image
 
 
 IMG_LOAD_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translated_rotated/v6_preds_v3')
-IMG_SAVE_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translated_rotated_cropped/v1/')
+IMG_SAVE_DIR = os.path.expanduser('~/cv-building-timelapse/data/adjust_translated_rotated_cropped/v2/')
 os.makedirs(IMG_SAVE_DIR, exist_ok=True)
 
 # (left, upper, right, lower)
-# see: scratch file to see how to get these values (v3)
-# note: +1 is to make the height divisible by 2
-CROP_DIMS = (190, 146, 3740, 2963+1)
+# see: scratch file to see how to get these values (v4)
+CROP_DIMS = (205, 271, 3725, 2911)
 
 
 if __name__ == "__main__":

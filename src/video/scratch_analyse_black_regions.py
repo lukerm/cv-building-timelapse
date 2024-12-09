@@ -208,6 +208,7 @@ if __name__ == "__main__":
     # *note: moving left back to its original position (ish) as 122 is just catching the RHS of the left house
     # note: there were quite a few badly predicted frames that had the right boundary cut off - moved back by ~100 pix
     # 3rd round: left = 190; right = 3740; top = 146; bottom = 2963  # v3
+    # 4th round: left = 205; right = 3725; top = 271; bottom = 2911  # v4: to ensure aspect ratio is 4:3
 
 
 

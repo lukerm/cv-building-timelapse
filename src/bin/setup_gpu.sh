@@ -1,4 +1,4 @@
-# Note: you need about XXX GB volume before images
+# Note: you need about 30GB volume before images
 # Use a p3.2xlarge (~$1 per hour)
 # attach instance role: cv-building-timelapse-training (for reading from & saving to S3)
 

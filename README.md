@@ -1,5 +1,5 @@
 
-# Construction Timelapse
+# Construction Timelapse 
 
 _Using Computer Vision to build a timelapse of a construction site._
 
